@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>61.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Multi-Select Lookup</masterLabel>
+    <description>This is a custom generic Multi-Select Lookup that can filter by Record Types.</description>
+    <targets>
+        <target>lightning__FlowScreen</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__FlowScreen">
+            <property 
+                name="objectApiName" 
+                label="Object Api Name" 
+                type="String" 
+                role="inputOnly"
+                description="The Api name of the Object to be used for the lookup." />
+            <property 
+                name="keyFieldApiName" 
+                label="Field API Name" 
+                type="String" 
+                role="inputOnly"
+                description="The field to use in selection (i.e.Name or CaseNumber)." />
+            <property 
+                name="lookupLabel" 
+                label="Label" 
+                type="String" 
+                role="inputOnly"
+                description="Label for the lookup." />
+            <property 
+                name="iconName" 
+                label="Icon Name" 
+                type="String" 
+                role="inputOnly"
+                description="The technical name for the Icon (e.g. standard:account)" />
+            <property 
+                name="recordTypes" 
+                label="Record Types" 
+                type="@salesforce/schema/RecordType[]" 
+                role="inputOnly"
+                description="Record Collection of Record Types." />
+            <property 
+                name="maxQueryResult" 
+                label="Maximum Query Result" 
+                type="Integer" 
+                default="10"
+                role="inputOnly"
+                description=" The maximum number of records to select on each search. Used in the LIMIT clause of the query. Default value is 10." />
+            <property 
+                name="maxSelection" 
+                label="Maximum Selection" 
+                type="Integer" 
+                default="5"
+                role="inputOnly"
+                description="The maximum number of records that the user can select from the lookup. Default value is 5." />
+            <property 
+                name="userSelection" 
+                label="User Selection" 
+                type="String[]" 
+                description="Save the User Selection to a text Collection. This is used to re-display the user's selection as needed.  For example, when the screen is refreshed due to a data validation error."  />  
+            <property 
+                name="selectedRecIds" 
+                label="Selected Record Ids" 
+                type="String[]" 
+                role="outputOnly" 
+                description="Text collection of the selected record Ids." />            
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>

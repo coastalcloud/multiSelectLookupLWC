@@ -1,21 +1,24 @@
 import { LightningElement, wire, api } from 'lwc';
-import { FlowAttributeChangeEvent } from 'lightning/flowSupport';
 import getLookupData from '@salesforce/apex/CustomMultiSelectLookupController.getLookupData';
 const DELAY = 200; // milliseconds
 
 export default class CustomMultiSelectLookup extends LightningElement {
-    _maxResult; 
-    _maxSelect; 
+    @api maxQueryResult; 
+    @api maxSelection; 
+    @api selectCriteria;
     @api iconName;
-    @api keyFieldApiName;
-    @api lookupLabel;
-    @api   
-    get maxQueryResult() { return this._maxResult !== null && this._maxResult !== undefined ? this._maxResult : 10; }
-    set maxQueryResult(value) { this._maxQueryResult = value; }
-    @api 
-    get maxSelection() { return this._maxSelect !== null && this._maxSelect !== undefined ? this._maxSelect : 5; }
-    set maxSelection(value) { this._maxSelect = value; }
     @api objectApiName;
+    @api fieldApiName;
+    @api lookupLabel;
+    @api 
+    get selectionCriteria() { return this.selectCriteria !== null && this.selectCriteria !== undefined ? this.selectCriteria : ' '; }
+    set selectionCriteria(value) { this.selectCriteria = value; }
+    @api   
+    get maxQueryLimit() { return this.maxQueryResult !== null && this.maxQueryResult !== undefined ? this.maxQueryResult : 20; }
+    set maxQueryLimit(value) { this.maxQueryResult = value; }
+    @api 
+    get maxRecordSelect() { return this.maxSelection !== null && this.maxSelection !== undefined ? this.maxSelection : 10; }
+    set maxRecordSelect(value) { this.maxSelection = value; }
     @api 
     get placeHolder() { return 'Search ' + this.lookupLabel; }
     @api recordTypes = [];
@@ -27,42 +30,41 @@ export default class CustomMultiSelectLookup extends LightningElement {
     searchOutput = [];       // Result of Apex selection
     selectedRecords = [];    
     showDropdown = false;    // State variable to control dropdown visibility
+    searchResultCount = 0;
 
     @wire(getLookupData, {    
         searchKey: "$searchKey",
         objectApiName: "$objectApiName",
-        keyFieldApiName: "$keyFieldApiName",
-        maxQueryResult: "$maxQueryResult",
+        fieldApiName: "$fieldApiName",
+        maxQueryResult: "$maxQueryLimit",
+        selectCriteria: "$selectionCriteria",
         recordTypes: "$recordTypes"
-    }) 
+    })
 
     searchResult({ data, error }) {
-        console.log('searchResult');
         if (data) {
-            console.log(data);
+            this.searchResultCount = this.searchResultCount + 1;
             this.hasRecords = data.length > 0 ? true : false;
             // Add a property to each record with the key field value
             this.searchOutput = data.map(record => ({
                 Id: record.Id,
-                keyFieldValue: record[this.keyFieldApiName]
+                fieldValue: record[this.fieldApiName]
             }));
         } else if (error) {
             console.log(error);
         }
     }
-
+    
     connectedCallback() {
-        console.log('connectedCallback');
-        
         // Deserialize userSelection to objects
         if (this.userSelection.length > 0) {
             this.selectedRecords = JSON.parse(this.userSelection);         
         }
-        // this.resetSearchState();
+        this.clearSearchInput();
     }
 
+
     handleChange(event){
-        console.log('handleChange');
         clearTimeout(this.delayTimeout);
         let value = event.target.value;
         this.delayTimeout = setTimeout(() => {
@@ -71,14 +73,12 @@ export default class CustomMultiSelectLookup extends LightningElement {
     }
 
     handleInput(event) {
-        console.log('handleInput');
         if (!event.target.value) {
             this.showDropdown = this.hasRecords;                                    // Show all records if search bar is empty
         }
     }
 
     handleClick(event) {
-        console.log('handleClick');
         let recId;
 
         if (event.target.hasAttribute("data-recid")) {
@@ -91,19 +91,18 @@ export default class CustomMultiSelectLookup extends LightningElement {
         }
 
         if(recId){
-            console.log('recId', recId);
-            if (this.selectedRecords.length < this.maxSelection) {
+            if (this.selectedRecords.length < this.maxRecordSelect) {
                 if (this.validateDuplicate(recId)) {
                     let selectedRecord = this.searchOutput.find(currItem => currItem.Id === recId);
                     let pill = {
                         type: 'icon',
-                        label: selectedRecord.keyFieldValue,
+                        label: selectedRecord.fieldValue,
                         Name: recId,
                         iconName: this.iconName,
-                        alternativeText: selectedRecord.keyFieldValue
+                        alternativeText: selectedRecord.fieldValue
                     };
                     this.selectedRecords = [...this.selectedRecords, pill];
-                    this.selectedRecIds.push(recId);   
+                    this.selectedRecIds =  [...this.selectedRecIds, recId];  
                     this.userSelection = JSON.stringify(this.selectedRecords);      // Serialize the selectedRecods to JSON strings          
                     this.clearSearchInput();                                        // Clear the search input field without focusing it
                 }
@@ -112,10 +111,8 @@ export default class CustomMultiSelectLookup extends LightningElement {
     }
 
     handleItemRemove(event) {
-        console.log('handleItemRemove');
         const selectedIndex = event.detail.index;
         const recIdToRemove = this.selectedRecords[selectedIndex].Name;
-
         this.selectedRecords.splice(selectedIndex, 1);
         this.selectedRecIds = this.selectedRecIds.filter(recId => recId !== recIdToRemove);
         this.userSelection = JSON.stringify(this.selectedRecords);                  // Serialize the selectedRecords to JSON strings
@@ -131,7 +128,6 @@ export default class CustomMultiSelectLookup extends LightningElement {
     }
 
     clearSearchInput() {
-        console.log('clearSearchInput');
         const searchInput = this.template.querySelector('lightning-input');
         if (searchInput) {
             searchInput.value = '';
@@ -140,28 +136,21 @@ export default class CustomMultiSelectLookup extends LightningElement {
         this.searchKey = '';
     }
 
-    handleFocus() {
-        console.log('handleFocus');
-        this.showDropdown = true;
-    }
+    handleFocus(event) {
+        if (this.searchResultCount > 0) {
+            this.showDropdown = true;         
+        }
+   }
 
     handleBlur(event) {
-        console.log('handleBlur');
-        const searchBox = this.template.querySelector('.slds-combobox');
         // Delay to allow other events to process
+        const searchBox = this.template.querySelector('.slds-combobox');
         setTimeout(() => {
             if (!searchBox.contains(document.activeElement)) {
                 this.showDropdown = false;
             }
         }, 200);  // Adjust the delay as necessary
-    }
 
-    // resetSearchState() {
-    //     console.log('resetSearchState');
-    //     //this.clearSearchInput();
-    //     const searchInput = this.template.querySelector('lightning-input');
-    //     if (searchInput) {
-    //         searchInput.blur();
-    //     }
-    // }
+
+    }
 }

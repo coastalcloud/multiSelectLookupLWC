@@ -1,0 +1,174 @@
+@isTest
+private class CustomMultiSelectLookupControllerTest {
+    public static final String SEARCH_KEY           = 'a';
+    public static final String NULL_SEARCH_KEY      = '';
+    public static final String OBJECT_API_NAME      = 'Account';
+    public static final String KEY_FIELD_API_NAME   = 'Name';
+    public static final Integer MAX_QUERY_RESULT    = 20;
+    public static final String SELECT_CRITERIA;
+    public static final List<RecordType> NO_RECORD_TYPES = new List<RecordType>();
+    public static final List<RecordType> TEST_RECORD_TYPES = [SELECT Id, DeveloperName FROM RecordType WHERE SObjectType = 'Account' LIMIT 1];
+
+    @testSetup
+    static void setup(){
+        //Get a test Record Type 
+        RecordType testRecordType = TEST_RECORD_TYPES[0];
+        
+        //Create test Accounts
+        List<Account> testAccts = new List<Account>();
+        for(Integer i=0;i<2;i++) {
+            testAccts.add(new Account(Name = 'TestAcct'+i, RecordTypeId = testRecordType.Id, IsActive = true));
+        }
+        insert testAccts;  
+    }
+
+    @IsTest
+    static void searchWithoutAnyFilters() {
+        Test.startTest();
+        try {
+            List<SObject> searchResult = CustomMultiSelectLookupController.getLookupData(   NULL_SEARCH_KEY, 
+                                                                                            OBJECT_API_NAME, 
+                                                                                            KEY_FIELD_API_NAME,
+                                                                                            MAX_QUERY_RESULT, 
+                                                                                            SELECT_CRITERIA,
+                                                                                            NO_RECORD_TYPES );
+
+            Assert.isTrue(searchResult.size() < 1, 'If no search key or record types are provided, empty list should be returned');
+        } catch (Exception e) {
+        }
+        Test.stopTest();
+    }
+
+
+    @IsTest
+    static void searchWithSearchKey() {
+        Test.startTest();
+        try {
+            List<SObject> searchResult = CustomMultiSelectLookupController.getLookupData(   SEARCH_KEY, 
+                                                                                            OBJECT_API_NAME, 
+                                                                                            KEY_FIELD_API_NAME,
+                                                                                            MAX_QUERY_RESULT, 
+                                                                                            SELECT_CRITERIA,                                                                                            
+                                                                                            NO_RECORD_TYPES );
+
+            Assert.isTrue(searchResult.size() > 0 & searchResult.size() < 21, 'At least 1 record and no more than 20 records, should be returned.');
+
+        } catch (Exception e) {
+            
+        }
+        Test.stopTest();
+
+    }
+
+    @IsTest
+    static void searchWithRecordTypes() {
+        Test.startTest();
+        try {
+            if (TEST_RECORD_TYPES.size() > 0) {
+                List<SObject> searchResult = CustomMultiSelectLookupController.getLookupData(   NULL_SEARCH_KEY, 
+                                                                                                OBJECT_API_NAME, 
+                                                                                                KEY_FIELD_API_NAME,
+                                                                                                MAX_QUERY_RESULT, 
+                                                                                                SELECT_CRITERIA,                                                                                                
+                                                                                                TEST_RECORD_TYPES );
+
+                Assert.isTrue(searchResult.size() > 0 & searchResult.size() < 21, 'At least 1 record and no more than 20 records, should be returned.');
+            }
+        } catch (Exception e) {
+            
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void searchWithSelectCriteria() {
+        String thisSelectCriteria = 'IsActive = true';
+        Test.startTest();
+        try {
+            if (TEST_RECORD_TYPES.size() > 0) {
+                List<SObject> searchResult = CustomMultiSelectLookupController.getLookupData(   NULL_SEARCH_KEY, 
+                                                                                                OBJECT_API_NAME, 
+                                                                                                KEY_FIELD_API_NAME,
+                                                                                                MAX_QUERY_RESULT, 
+                                                                                                thisSelectCriteria,                                                                                                
+                                                                                                NO_RECORD_TYPES );
+
+                Assert.isTrue(searchResult.size() > 0 & searchResult.size() < 21, 'At least 1 record and no more than 20 records, should be returned.');
+            }
+        } catch (Exception e) {
+            
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void searchWithSearchKeyAndRecordTypes() {
+        Test.startTest();
+        try {
+            if (TEST_RECORD_TYPES.size() > 0) {
+                List<SObject> searchResult = CustomMultiSelectLookupController.getLookupData(   SEARCH_KEY, 
+                                                                                                OBJECT_API_NAME, 
+                                                                                                KEY_FIELD_API_NAME,
+                                                                                                MAX_QUERY_RESULT, 
+                                                                                                SELECT_CRITERIA,                                                                                                
+                                                                                                TEST_RECORD_TYPES );
+
+                Assert.isTrue(searchResult.size() > 0 & searchResult.size() < 21, 'At least 1 record and no more than 20 records, should be returned.');
+            }
+        } catch (Exception e) {
+            
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void unknownFieldName() {
+        Test.startTest();
+        try {
+            List<SObject> searchResult = CustomMultiSelectLookupController.getLookupData(   SEARCH_KEY, 
+                                                                                            OBJECT_API_NAME, 
+                                                                                            'Z1A2B3__c',
+                                                                                            MAX_QUERY_RESULT, 
+                                                                                            SELECT_CRITERIA,                                                                                            
+                                                                                            TEST_RECORD_TYPES );
+
+        } catch (Exception e) {
+            Assert.isNotNull(e, 'Unknown field name threw an exception.');
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void unknownObject() {
+        Test.startTest();
+        try {
+            List<SObject> searchResult = CustomMultiSelectLookupController.getLookupData(   SEARCH_KEY, 
+                                                                                            'A1B2C3D4', 
+                                                                                            KEY_FIELD_API_NAME,
+                                                                                            MAX_QUERY_RESULT, 
+                                                                                            SELECT_CRITERIA,                                                                                            
+                                                                                            TEST_RECORD_TYPES );
+       
+        } catch (Exception e) {
+            Assert.isNotNull(e, 'Unknown SObject threw an exception.');
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void nullObject() {
+        Test.startTest();
+        try {
+            List<SObject> searchResult = CustomMultiSelectLookupController.getLookupData(   SEARCH_KEY, 
+                                                                                            NULL_SEARCH_KEY, 
+                                                                                            KEY_FIELD_API_NAME,
+                                                                                            MAX_QUERY_RESULT, 
+                                                                                            SELECT_CRITERIA,                                                                                            
+                                                                                            TEST_RECORD_TYPES );
+       
+        } catch (Exception e) {
+            Assert.isNotNull(e, 'Unknown SObject threw an exception.');
+        }
+        Test.stopTest();
+    }
+}

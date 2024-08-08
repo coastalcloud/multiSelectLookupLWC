@@ -5,7 +5,7 @@
                 <div class="slds-combobox_container">
                     <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open">
                         <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right"
-                            role="none">
+                            role="none" >
                             <lightning-input type="search" label={lookupLabel} placeholder={placeHolder}
                                 onchange={handleChange} onfocus={handleFocus} onblur={handleBlur}
                                 class="slds-var-p-left_small slds-var-p-right_small" oninput={handleInput}>
@@ -29,13 +29,13 @@
                                                 <span class="slds-media__figure slds-listbox__option-icon">
                                                     <span class="slds-icon_container slds-icon-standard-account">
                                                         <lightning-icon icon-name={iconName} size="small"
-                                                            alternative-text={output.keyFieldValue}></lightning-icon>
+                                                            alternative-text={output.fieldValue}></lightning-icon>
                                                     </span>
                                                 </span>
                                                 <span class="slds-media__body">
                                                     <span
                                                         class="slds-listbox__option-text slds-listbox__option-text_entity"
-                                                        data-recid={output.Id}>{output.keyFieldValue}
+                                                        data-recid={output.Id}>{output.fieldValue}
                                                     </span>
                                                 </span>
                                             </div>

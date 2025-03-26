@@ -1,4 +1,4 @@
-June-2024 Multi-Select Lookup LWC for Lightning Screen Flow
+March-2025 Multi-Select Lookup LWC for Lightning Screen Flow
 Currently the standard Salesforce Lookup component, used in Lightning Screen Flows, does not provide the capability to select more than one item on the mobile form factor.  Salesforce's current solution is to use a Choice Selection within the LWC Lookup component.  However, this solution requires the preselection of all records to present for the user's selection.  For the application that needed the lookup, this choice resource would have required an inefficient amount of records to be retained in memory.  This custom component provides the capability to provide an efficient and scalable lookup selection to the user on the desktop and mobile platforms.  This custom component is a highly configurable component.  It can be used for any SObject.  Also, Record Types can be used as a query filter.  
 Please view the list of parameters for more information on the ability to configure the record selections.
 The parameters for this component:
